@@ -1,1 +1,1 @@
-Placeholder for k8s manifests
+Placeholder para k8s manifests
