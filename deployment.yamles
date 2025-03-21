@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-redis-counter
+  namespace: default
+  labels:
+    app: flask-redis-counter
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-redis-counter
+  template:
+    metadata:
+      labels:
+        app: flask-redis-counter
+    spec:
+      automountServiceAccountToken: false  # 🔹 Evita la asignación automática de credenciales RBAC
+      volumes:
+        - name: flask-storage
+          persistentVolumeClaim:
+            claimName: flask-pvc  # 🔹 Uso del PVC para almacenamiento persistente
+      containers:
+        - name: flask-app
+          image: ramon1743/flask-redis-counter-practica-ramonmeza:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: flask-redis-config
+            - secretRef:
+                name: flask-redis-secret
+          resources:
+            requests:
+              memory: "128Mi"  
+              cpu: "250m"       
+              ephemeral-storage: "500Mi"  # 🔹 Solicita 500MB de almacenamiento efímero
+            limits:
+              memory: "256Mi"  
+              cpu: "500m"       
+              ephemeral-storage: "1Gi"  # 🔹 Límite de 1GB de almacenamiento efímero
+          volumeMounts:
+            - mountPath: /app/storage
+              name: flask-storage  
